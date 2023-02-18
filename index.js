@@ -66,7 +66,7 @@ function viewDepartments(){
 }
 
 function viewRoles(){
-    const view = `SELECT title, role.id, department.name AS department FROM role JOIN department ON role.department_id = department.id`
+    const view = `SELECT title, role.id, department.name AS department, salary FROM role JOIN department ON role.department_id = department.id`
     db.query(view, (err, results)=>{
         if (err) {
             console.log(err);
@@ -112,31 +112,75 @@ function addRole({roleadd}){
             inquirer.prompt([      
                 {
                     type: "list",
-                    name: "type",
+                    name: "department",
                     message: "What Department do they belong to?",
                     choices: names
                 }
             ])
             .then(data => {
                 const add = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`
-                db.query(add, [roleName, salary, names.indexOf(data.type)+1], (error, results) =>{
-                    if (error) {
-                        console.log(error);
-                        }
-                        console.log(results)
-                        mainMenu(questionBank)
+                db.query(add, [roleName, salary, names.indexOf(data.department)+1], (error, results) =>{
+                    if (error) console.log(error)
+                    console.log(results)
+                    mainMenu(questionBank)
                 })
             })
         })
     })
 }
-//THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 
-function addEmployee(){
-
+function addEmployee({employeeadd}){
+    db.query(`SELECT * FROM employee`, (err, emp) => {
+        db.query(`SELECT * FROM role`, (err2, role)=>{
+            inquirer.prompt(employeeadd)
+            .then(data => {
+                const {firstName, lastName} = data
+                const roles = role.map(role=>role.title)
+                inquirer.prompt([
+                    {
+                        type: "list",
+                        name: "role",
+                        message: "Which role do they have?",
+                        choices: roles
+                    }
+                ])
+                .then(data2 => {
+                    const {role} = data2
+                    let managers = emp.map(emp=>emp.first_name)
+                    managers = [...managers, "null"]
+                    inquirer.prompt([
+                        {
+                            type:"list",
+                            name: "manager",
+                            message: "Who is their manager?",
+                            choices: managers
+                        }
+                    ])
+                    .then(data3 => {
+                        let {manager} = data3
+                        let managerId;
+                        if (manager === "null"){
+                            managerId = null
+                        } else managerId = managers.indexOf(manager)+1
+                        
+                        const add = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`
+                        db.query(add, [firstName, lastName, roles.indexOf(role)+1, managerId], (err3, results) =>{
+                            if (err3) console.log(err3)
+                            console.log(results)
+                            mainMenu(questionBank)
+                        })
+                    })
+                })
+            })
+        })
+    })
 }
 
-
 function updateEmployee(){
+    db.query(`SELECT * FROM employee`, (err, emp) => {
+        db.query(`SELECT * FROM role`, (err, role)=>{
+
+        })
+    })
 
 }

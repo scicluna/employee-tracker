@@ -30,12 +30,24 @@ const questionBank = {
         {
             type: "list",
             name: "type",
-            message: "Would you like to add an Engineer or Intern?",
+            message: "What Department do they belong to?",
             choices: ["Engineer", "Intern", "I'm done adding members"]
         }
+    ],
+    employeeadd: [
+        {
+            type: "input",
+            name: "firstName",
+            message: "What is the employee's first name?"
+        },
+        {
+            type: "input",
+            name: "lastName",
+            message: "What is the employee's last name?"
+        },
     ]
 }
 
 
 module.exports = questionBank
-//THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
+//THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
