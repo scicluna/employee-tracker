@@ -179,8 +179,30 @@ function addEmployee({employeeadd}){
 function updateEmployee(){
     db.query(`SELECT * FROM employee`, (err, emp) => {
         db.query(`SELECT * FROM role`, (err, role)=>{
-
+            const employees = emp.map(emp=>emp.first_name)
+            const roles = [...role.map(role=>role.title), "nevermind"]
+            inquirer.prompt([{
+                type: "list",
+                name: "employee",
+                message: "Which employee would you like to change roles for?",
+                choices: employees
+            },
+            {
+                type:"list",
+                name:"role",
+                message:"Which role would you like the employee to be reassigned to?",
+                choices: roles
+            }])
+            .then(data => {
+                const {employee, role} = data
+                if(role == "nevermind") mainMenu(questionBank)
+                const update = `UPDATE employee SET role_id = ? WHERE employee.id = ?`
+                db.query(update, [roles.indexOf(role)+1, employees.indexOf(employee)+1], (err, result) => {
+                    if (err) console.log(err)
+                    console.log(result)
+                    mainMenu(questionBank)
+                })
+            })
         })
     })
-
 }
