@@ -55,7 +55,19 @@ function pickOption({type}){
         case "VIEW EMPLOYEES BY DEPARTMENT": viewEmployeesByDepartment()
         break;
 
+        case "VIEW DEPARTMENT BUDGET": viewDepartmentBudget()
+        break;
+
         case "UPDATE EMPLOYEE MANAGER": updateEmployeeManager()
+        break;
+
+        case "DELETE DEPARTMENT": deleteDepartment()
+        break;
+
+        case "DELETE ROLE": deleteRole()
+        break;
+
+        case "DELETE EMPLOYEE": deleteEmployee()
         break;
 
         case "EXIT": process.exit()
@@ -275,5 +287,123 @@ function viewEmployeesByDepartment(){
 }
 
 function updateEmployeeManager(){
+    db.query(`SELECT * FROM employee`, (err, emp) => {
+        const employees = emp.map(emp=>emp.first_name)
+        inquirer.prompt({
+            type: "list",
+            name: "employee",
+            message: "Which employee's manager would you like to update?",
+            choices: employees
+        })
+        .then(data => {
+            const {employee} = data
+            const potentialManagers = employees.filter(emp=>emp != employee)
+            inquirer.prompt({
+                type: "list",
+                name: "manager",
+                message: "Who is their new manager?",
+                choices: potentialManagers
+            })
+            .then(data => {
+                const {manager} = data
+                const managerId = employees.indexOf(manager)+1
+                const sql = `UPDATE employee SET manager_id = ? WHERE employee.first_name = ?`
+                db.query(sql, [managerId, employee], (err, results) => {
+                    if (err) console.log(err)
+                    console.log(results)
+                    mainMenu(questionBank)
+                })
+            })
+        })
+    })
+}
 
+function deleteDepartment(){
+    db.query(`SELECT * FROM department`, (err, dep) => {
+        const departments = [...dep.map(dep=>dep.name), "BACK"]
+        inquirer.prompt({
+            type:"list",
+            name: "department",
+            message: "Which department would you like to delete? (Warning, this will delete all roles and employees that belong to this department.)",
+            choices: departments
+        })
+        .then(data=>{
+            const remove = `DELETE FROM department WHERE id = ?`
+            const {department} = data
+            if (department == "BACK") return mainMenu(questionBank)
+            const departmentId = departments.indexOf(department)+1
+            db.query(remove, departmentId, (err, results) => {
+                if (err) console.log(err)
+                console.log(results)
+                mainMenu(questionBank)
+            })
+        })
+    })
+}
+
+function deleteRole(){
+    db.query(`SELECT * FROM role`, (err, rol) => {
+        const roles = [...rol.map(rol=>rol.title), "BACK"]
+        inquirer.prompt({
+            type:"list",
+            name: "role",
+            message: "Which role would you like to delete? (Warning, this will delete all employees that possess that role.)",
+            choices: roles
+        })
+        .then(data=>{
+            const remove = `DELETE FROM role WHERE id = ?`
+            const {role} = data
+            if (role == "BACK") return mainMenu(questionBank)
+            const roleId = roles.indexOf(role)+1
+            db.query(remove, roleId, (err, results) => {
+                if (err) console.log(err)
+                console.log(results)
+                mainMenu(questionBank)
+            })
+        })
+    })
+}
+
+function deleteEmployee(){
+    db.query(`SELECT * FROM employee`, (err, emp) => {
+        const employees = [...emp.map(emp=>emp.first_name), "BACK"]
+        inquirer.prompt({
+            type:"list",
+            name: "employee",
+            message: "Which employee would you like to delete?",
+            choices: employees
+        })
+        .then(data=>{
+            const remove = `DELETE FROM employee WHERE id = ?`
+            const {employee} = data
+            if (employee == "BACK") return mainMenu(questionBank)
+            const employeeId = employees.indexOf(employee)+1
+            db.query(remove, employeeId, (err, results) => {
+                if (err) console.log(err)
+                console.log(results)
+                mainMenu(questionBank)
+            })
+        })
+    })
+}
+
+function viewDepartmentBudget(){
+    db.query(`SELECT * FROM department`, (err, dep) => {
+        const departments = dep.map(dep=>dep.name)
+        inquirer.prompt({
+            type: "list",
+            name: "department",
+            message: "Which department's budget would you like to view?",
+            choices: departments
+        })
+        .then(data => {
+            const {department} = data
+            const sql = `SELECT SUM(role.salary) AS budget FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department ON role.department_id = department.id WHERE department.name = ? `
+            db.query(sql, department, (err, results) => {
+                if (err) console.log(err)
+                console.table('',results)
+                mainMenu(questionBank)
+            })
+        })
+    })
 }

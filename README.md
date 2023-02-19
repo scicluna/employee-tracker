@@ -27,8 +27,8 @@ View employees by manager. - DONE
 
 View employees by department. - DONE
 
-Update employee managers.
+Update employee managers. - DONE
 
-Delete departments, roles, and employees.
+Delete departments, roles, and employees. - DONE
 
-View the total utilized budget of a department—in other words, the combined salaries of all employees in that department.
+View the total utilized budget of a department—in other words, the combined salaries of all employees in that department. - DONE
