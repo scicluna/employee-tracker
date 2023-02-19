@@ -49,6 +49,17 @@ function pickOption({type}){
         case "UPDATE EMPLOYEE": updateEmployee()
         break;
 
+        case "VIEW EMPLOYEES BY MANAGER": viewEmployeesByManager()
+        break;
+
+        case "VIEW EMPLOYEES BY DEPARTMENT": viewEmployeesByDepartment()
+        break;
+
+        case "UPDATE EMPLOYEE MANAGER": updateEmployeeManager()
+        break;
+
+        case "EXIT": process.exit()
+
         default: break;
     }
 }
@@ -91,7 +102,6 @@ function addDepartment({departmentadd}){
     inquirer.prompt(departmentadd)
     .then(data => {
         const {departmentName} = data
-        console.log(departmentName)
         const add = `INSERT INTO department (name) VALUES (?)`
         db.query(add, departmentName, (err, results) => {
             if (err) {
@@ -205,4 +215,65 @@ function updateEmployee(){
             })
         })
     })
+}
+
+function viewEmployeesByManager(){
+    db.query(`SELECT * FROM employee`, (err, emp) => {
+        const employees = emp.map(emp=>emp.first_name)
+        const employeeIds = emp.map(emp=>emp.id)
+        const managerIds = emp.map(emp=>emp.manager_id)
+        const managers = []
+            managerIds.forEach(id=>{
+            if (id == null) return
+            if (!managers.includes(employees[id-1]))managers.push(employees[id-1])
+        })
+        const managerIdTracker = []
+            managers.forEach(manager=>{
+                employees.forEach((employee, i)=>{
+                    if (manager == employee) managerIdTracker.push(i)
+                })
+            })
+
+        inquirer.prompt({
+            type: "list",
+            name: "manager",
+            message: "Which manager's employees would you like to view?",
+            choices: managers
+        })
+        .then(data => {
+            const {manager} = data
+            const query = `SELECT first_name, last_name, role.title FROM employee JOIN role ON role.id = employee.role_id WHERE manager_id = ?  `
+            db.query(query, employeeIds[employees.indexOf(manager)], (err, results) =>{
+                if (err) console.log(err)
+                console.table('',results)
+                mainMenu(questionBank)
+            })
+        })
+    })
+}
+
+function viewEmployeesByDepartment(){
+    db.query(`SELECT * FROM department`, (err, dep) => {
+        const departments = dep.map(dep=>dep.name)
+        inquirer.prompt([{
+            type: "list",
+            name: "department",
+            message: "Which department would you like to view?",
+            choices: departments
+        }])
+        .then(data => {
+            const {department} = data
+            const departmentID = departments.indexOf(department)+1
+            const sql = `SELECT first_name AS employees FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department ON role.department_id = department.id  WHERE employee.role_id = role.id AND role.department_id = ?`
+            db.query(sql, departmentID, (err, results) => {
+                if (err) console.log(err)
+                console.table('',results)
+                mainMenu(questionBank)
+            })
+        })
+    })
+}
+
+function updateEmployeeManager(){
+
 }
