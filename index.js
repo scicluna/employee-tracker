@@ -1,14 +1,14 @@
 const inquirer = require("inquirer")
 const mysql = require("mysql2");
-const cTable = require("console.table")
 const questionBank = require("./assets/questionbank")
-
+const cTable = require('console.table')
+require('dotenv').config()
 
 const db = mysql.createConnection(
     {
       host: 'localhost',
       user: 'root',
-      password: 'starStarstar552!',
+      password: process.env.PASSWORD,
       database: 'employee_db'
     },
     console.log(`Connected to the movies_db database.`)
@@ -158,7 +158,7 @@ function addEmployee({employeeadd}){
             .then(data => {
                 const {firstName, lastName} = data
                 const roles = role.map(role=>role.title)
-                inquirer.prompt([
+                inquirer.prompt([ //can return this?
                     {
                         type: "list",
                         name: "role",
@@ -169,7 +169,7 @@ function addEmployee({employeeadd}){
                 .then(data2 => {
                     const {role} = data2
                     let managers = emp.map(emp=>emp.first_name)
-                    managers = [...managers, "null"]
+                    managers = [...managers, "No Manager"]
                     inquirer.prompt([
                         {
                             type:"list",
@@ -181,7 +181,7 @@ function addEmployee({employeeadd}){
                     .then(data3 => {
                         let {manager} = data3
                         let managerId;
-                        if (manager === "null"){
+                        if (manager === "No Manager"){
                             managerId = null
                         } else managerId = managers.indexOf(manager)+1
                         
@@ -254,7 +254,7 @@ function viewEmployeesByManager(){
         })
         .then(data => {
             const {manager} = data
-            const query = `SELECT first_name, last_name, role.title FROM employee JOIN role ON role.id = employee.role_id WHERE manager_id = ?  `
+            const query = `SELECT first_name, last_name, role.title FROM employee JOIN role ON role.id = employee.role_id WHERE manager_id = ?`
             db.query(query, employeeIds[employees.indexOf(manager)], (err, results) =>{
                 if (err) console.log(err)
                 console.table('',results)
@@ -398,7 +398,7 @@ function viewDepartmentBudget(){
         })
         .then(data => {
             const {department} = data
-            const sql = `SELECT SUM(role.salary) AS budget FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department ON role.department_id = department.id WHERE department.name = ? `
+            const sql = `SELECT SUM(role.salary) AS  "${department} budget" FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department ON role.department_id = department.id WHERE department.name = ? `
             db.query(sql, department, (err, results) => {
                 if (err) console.log(err)
                 console.table('',results)
