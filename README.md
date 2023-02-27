@@ -22,6 +22,7 @@ You must have mysql installed in order for you to use this program.
 ## Usage
 
 Just follow the prompts to either add, delete, edit, or view your employee database  
+Example Video: https://drive.google.com/file/d/1zByCGHIByEtyyU9Ms8KSasWCQffdEqIu/view?usp=sharing
 ![](/assets/example.png)
 
 ## License
